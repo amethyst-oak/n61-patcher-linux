@@ -1,0 +1,43 @@
+# Build kpf-test as an aarch64 Linux executable (run it with qemu-aarch64 on x86 hosts).
+# Debian: apt install clang gcc-aarch64-linux-gnu libc6-dev-arm64-cross qemu-user
+ROOT   := ../..
+SRC    := $(ROOT)/src
+INC    := $(ROOT)/include
+RA1N   := $(ROOT)/checkra1n/kpf
+SHIM   := $(ROOT)/linux-shim
+CLANG  ?= clang
+CROSS  ?= aarch64-linux-gnu
+CROSS_INC ?= /usr/$(CROSS)/include
+B      := build-linux
+
+DEFS := -D_GNU_SOURCE -DCHECKRAIN_VERSION='' -Diprintf=printf -Dpanic=realpanic \
+        -DOVERRIDE_CACHEABLE_VIEW=0x800000000ULL -DDEV_BUILD=1
+CFLAGS_ALL := --target=$(CROSS) -std=gnu17 -O2 -w -fno-lto -ffunction-sections -fdata-sections $(DEFS) \
+        -I$(SHIM) -I$(INC) -I$(SRC)/kernel -I$(SRC)/drivers -isystem $(CROSS_INC) $(CFLAGS)
+
+.PHONY: all clean
+all: kpf-test.linux
+
+$(B):
+	mkdir -p $(B)
+
+# Mach-O symbol names carry a leading underscore; ELF ones do not.
+$(B)/shellcode.S: $(RA1N)/shellcode.S | $(B)
+	sed -E 's/(^|[^A-Za-z0-9_.])_([a-z][A-Za-z0-9_]*)/\1\2/g' $< > $@
+$(B)/xnu.S: $(SRC)/drivers/xnu/xnu.S | $(B)
+	sed -E 's/(^|[^A-Za-z0-9_.])_([a-z][A-Za-z0-9_]*)/\1\2/g' $< > $@
+
+$(B)/%.o: $(B)/%.S
+	$(CLANG) $(CFLAGS_ALL) -c $< -o $@
+$(B)/main.o: main.c | $(B)
+	$(CLANG) $(CFLAGS_ALL) -c $< -o $@
+$(B)/kpf.o: $(RA1N)/main.c | $(B)
+	$(CLANG) $(CFLAGS_ALL) -c $< -o $@
+$(B)/xnuc.o: $(SRC)/drivers/xnu/xnu.c | $(B)
+	$(CLANG) $(CFLAGS_ALL) -c $< -o $@
+
+kpf-test.linux: $(B)/main.o $(B)/kpf.o $(B)/xnuc.o $(B)/shellcode.o $(B)/xnu.o
+	$(CROSS)-gcc -static -Wl,--gc-sections -o $@ $^
+
+clean:
+	rm -rf $(B) kpf-test.linux

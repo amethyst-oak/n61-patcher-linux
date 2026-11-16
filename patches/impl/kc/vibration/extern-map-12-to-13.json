@@ -1,0 +1,90 @@
+{
+  "note": "DRV2604 has 16 external direct branch targets: 15 direct mappings and one millisecond-delay trampoline. Addresses refer to the iOS 13.7 Wi-Fi kernel.",
+  "osmetaclass_ctor_13": "0xfffffff0075b846c",
+  "confirmed": {
+    "0xfffffff007cb0d60": {
+      "id": "OSMetaClass::OSMetaClass(this,name,super,size)",
+      "to": "0xfffffff0075b846c",
+      "how": "Symbol __ZN11OSMetaClassC2EPKcPKS_j and GOT; matching instruction structure."
+    },
+    "0xfffffff007cb1a68": {
+      "id": "OSMetaClass::~OSMetaClass (D2)",
+      "to": "0xfffffff0075b8c30",
+      "how": "Symbol __ZN11OSMetaClassD2Ev; matching instruction structure."
+    },
+    "0xfffffff007cb4a64": {
+      "id": "OSObject::operator delete(void*,size_t)",
+      "to": "0xfffffff0075baaa4",
+      "how": "Symbol __ZN8OSObjectdlEPvm; matching instruction structure."
+    },
+    "0xfffffff007cb4b54": {
+      "id": "OSObject::operator new(size_t)",
+      "to": "0xfffffff0075bab14",
+      "how": "Symbol __ZN8OSObjectnwEm; matching instruction structure."
+    },
+    "0xfffffff007cb24b4": {
+      "id": "OSMetaClass::instanceConstructed() const",
+      "to": "0xfffffff0075b93c0",
+      "how": "Symbol __ZNK11OSMetaClass19instanceConstructedEv; 9/9 structural instruction matches."
+    },
+    "0xfffffff007cb0ef4": {
+      "id": "OSMetaClassBase::safeMetaCast(obj,meta)",
+      "to": "0xfffffff0075b85f0",
+      "how": "Symbol __ZN15OSMetaClassBase12safeMetaCastEPKS_PK11OSMetaClass; 19/19 structural instruction matches."
+    },
+    "0xfffffff007671740": {
+      "id": "memset",
+      "to": "0xfffffff0070b5740",
+      "how": "Symbol _memset; 30/30 structural instruction matches."
+    },
+    "0xfffffff007e805d0": {
+      "id": "AppleARMPWM::AppleARMPWM() constructor",
+      "to": "0xfffffff005fd9e74",
+      "how": "AppleARMPWM::C2 calls IOService::C2 and writes vtable 0xfffffff006dd9038."
+    },
+    "0xfffffff007e805f4": {
+      "id": "AppleARMPWM::~AppleARMPWM() destructor",
+      "to": "0xfffffff005fd9e94",
+      "how": "AppleARMPWM::D2 tail-calls IOService::D2."
+    },
+    "0xfffffff0076bb268": {
+      "id": "panic (varargs)",
+      "to": "0xfffffff0076a972c",
+      "how": "Symbol _panic; first 12 instructions have matching structure."
+    },
+    "0xfffffff007e6caa0": {
+      "id": "getFunction(this,name): look up an object by name and dispatch through vtable+0x28",
+      "to": "0xfffffff005fbe7ac",
+      "how": "Located structurally inside AppleARMPlatform; 20/20 matching instructions."
+    },
+    "0xfffffff007cfc594": {
+      "id": "IOLog(fmt,...)",
+      "to": "0xfffffff0075f830c",
+      "how": "Symbol _IOLog; 26 call sites use format strings and stacked variadic arguments."
+    },
+    "0xfffffff007dbdf80": {
+      "id": "PE_parse_boot_argn(name,buf,maxlen): read drv2604-force_rtp / drv2604-debug",
+      "to": "0xfffffff00768b500",
+      "how": "Symbol _PE_parse_boot_argn; arguments include boot-argument names, x0,x1,x2=4,w3=0."
+    },
+    "0xfffffff007680650": {
+      "id": "__stack_chk_fail: panic with Kernel stack memory corruption detected",
+      "to": "0xfffffff0070c4650",
+      "how": "Symbol ___stack_chk_fail; panic string matches XNU and behavior is equivalent."
+    },
+    "0xfffffff007cb1d5c": {
+      "id": "OSMetaClass::getClassName(): read className at metaclass+0x18 and call getCStringNoCopy()",
+      "to": "0xfffffff0075b8dd8",
+      "how": "Symbol __ZNK11OSMetaClass12getClassNameEv. Instructions match except the getCStringNoCopy vtable slot: +0xa0 in iOS 12, +0xa8 in iOS 13. Mapping to the iOS 13 function handles its added OSSymbol slot. Result is passed as %s to IOLog for setProperties."
+    }
+  },
+  "resolved_via_trampoline": {
+    "0xfffffff007cfc4b4": {
+      "id": "Millisecond spin-delay wrapper: set w1=1000000 ns/ms, then tail-call delay_for_interval. Driver calls it with w0=1000/10/100 ms during initialization and retries.",
+      "anchor": "iOS 12 address 0xfffffff0076b4a5c implements delay_for_interval using timebase constant 0x5a53a09bb82f0044 and cntpct_el0. The iOS 13 symbol _delay_for_interval is at 0xfffffff0070efbc8 with two additional leading instructions.",
+      "reason": "iOS 13 inlines the single-argument wrapper. The driver supplies only w0; delay_for_interval needs interval and scale, so scale=1000000 must be supplied.",
+      "resolution": "Append three instructions and map 0xfffffff007cfc4b4 to them: movz w1,#0x4240; movk w1,#0xf,lsl16; b 0xfffffff0070efbc8. The approximately 18 MB branch is within the +/-128 MB range and preserves the millisecond spin delay.",
+      "delay_for_interval_13": "0xfffffff0070efbc8"
+    }
+  }
+}

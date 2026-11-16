@@ -1,0 +1,760 @@
+{
+  "source": "donors/extracted/n56ap_ios12/kernelcache.release.iphone7.decompressed",
+  "target": "build/kernelcache.legacy-sep.raw",
+  "counts": {
+    "kernel": 32,
+    "com.apple.driver.AppleARMPlatform": 2
+  },
+  "confirmed": {
+    "0xfffffff007671510": {
+      "id": "memcpy / memmove",
+      "to": "0xfffffff0070b5510",
+      "provider": "kernel",
+      "how": "Unique match after masking PC-relative fields; the first 41 instructions agree. Call arguments are dst, src and len.",
+      "target_symbols": [
+        "_memcpy",
+        "_memmove"
+      ],
+      "call_sites": [
+        "0xfffffff0086f4ca0",
+        "0xfffffff0086f4d20",
+        "0xfffffff0086f6ab8"
+      ]
+    },
+    "0xfffffff007671740": {
+      "id": "memset",
+      "to": "0xfffffff0070b5740",
+      "provider": "kernel",
+      "how": "Symbol _memset; all 30 structural instructions match",
+      "target_symbols": [
+        "_memset"
+      ],
+      "call_sites": [
+        "0xfffffff0086f4ce0"
+      ]
+    },
+    "0xfffffff007680650": {
+      "id": "__stack_chk_fail: panics with the kernel stack-corruption message",
+      "to": "0xfffffff0070c4650",
+      "provider": "kernel",
+      "how": "Symbol ___stack_chk_fail; the panic string matches XNU and semantics agree",
+      "target_symbols": [
+        "___stack_chk_fail"
+      ],
+      "call_sites": [
+        "0xfffffff0086f0224",
+        "0xfffffff0086f285c",
+        "0xfffffff0086f3044",
+        "0xfffffff0086f3444",
+        "0xfffffff0086f38c8",
+        "0xfffffff0086f39c4",
+        "0xfffffff0086f417c",
+        "0xfffffff0086f4554",
+        "0xfffffff0086f4a7c",
+        "0xfffffff0086f6cb8",
+        "0xfffffff0086f74f8"
+      ]
+    },
+    "0xfffffff0076b4890": {
+      "id": "clock_delay_until(deadline)",
+      "to": "0xfffffff0070efa7c",
+      "provider": "kernel",
+      "how": "Reads cntpct_el0 and the CPU clock offset before comparing the deadline. Long waits use assert_wait/thread_block and short waits use wfe; iOS 13 thread->cpu_data offset is 0x490.",
+      "target_symbols": [
+        "_clock_delay_until"
+      ],
+      "call_sites": [
+        "0xfffffff0086f22e0",
+        "0xfffffff0086f2998"
+      ]
+    },
+    "0xfffffff0076b4c08": {
+      "id": "clock_interval_to_deadline(interval,scale,out)",
+      "to": "0xfffffff0070efd64",
+      "provider": "kernel",
+      "how": "The nanosecond conversion constant and three arguments agree, with the result stored at [x2]. Audio passes interval=50 and scale=1000000 and stores the result at object+0x258.",
+      "target_symbols": [
+        "_clock_interval_to_deadline"
+      ],
+      "call_sites": [
+        "0xfffffff0086f22a8"
+      ]
+    },
+    "0xfffffff0076bb268": {
+      "id": "panic (vararg)",
+      "to": "0xfffffff0076a972c",
+      "provider": "kernel",
+      "how": "Symbol _panic; first 12 structural entry instructions match",
+      "target_symbols": [
+        "_panic"
+      ],
+      "call_sites": [
+        "0xfffffff0086f0534",
+        "0xfffffff0086f073c",
+        "0xfffffff0086f1b14"
+      ]
+    },
+    "0xfffffff007b2c1b8": {
+      "id": "kernel_debug(debugid,arg1,arg2,arg3,arg4,arg5)",
+      "to": "0xfffffff007491bbc",
+      "provider": "kernel",
+      "how": "Both versions read the thread ID through tpidr_el1 into x5, set x6=0, then use the same five-event-argument framework. The iOS 13 thread ID offset is 0x440.",
+      "target_symbols": [
+        "_kernel_debug"
+      ],
+      "call_sites": [
+        "0xfffffff0086f6750",
+        "0xfffffff0086f68a0",
+        "0xfffffff0086f697c",
+        "0xfffffff0086f6a00",
+        "0xfffffff0086f6c30",
+        "0xfffffff0086f6e48",
+        "0xfffffff0086f6f38",
+        "0xfffffff0086f6fc4",
+        "0xfffffff0086f70f8",
+        "0xfffffff0086f715c",
+        "0xfffffff0086f7208",
+        "0xfffffff0086f72dc",
+        "0xfffffff0086f73dc",
+        "0xfffffff0086f74bc",
+        "0xfffffff0086f7554",
+        "0xfffffff0086f75c0",
+        "0xfffffff0086f7638",
+        "0xfffffff0086f76e0",
+        "0xfffffff0086f773c",
+        "0xfffffff0086f77a4",
+        "0xfffffff0086f7848",
+        "0xfffffff0086f7a80",
+        "0xfffffff0086f7b38",
+        "0xfffffff0086f7c34",
+        "0xfffffff0086f7cac",
+        "0xfffffff0086f7d20",
+        "0xfffffff0086f7dc0",
+        "0xfffffff0086f8028",
+        "0xfffffff0086f80a8",
+        "0xfffffff0086f80e0",
+        "0xfffffff0086f8218",
+        "0xfffffff0086f8384",
+        "0xfffffff0086f83e4",
+        "0xfffffff0086f938c",
+        "0xfffffff0086f949c"
+      ]
+    },
+    "0xfffffff007bc8178": {
+      "id": "snprintf(buffer,size,format,...)",
+      "to": "0xfffffff0074f5b58",
+      "provider": "kernel",
+      "how": "The 24-instruction body retains stack varargs, character callback and terminating NUL. The call uses buffer=sp+8, size=32 and format=%s-intmic.",
+      "target_symbols": [
+        "_snprintf"
+      ],
+      "call_sites": [
+        "0xfffffff0086eff90",
+        "0xfffffff0086f0000"
+      ]
+    },
+    "0xfffffff007cb0d60": {
+      "id": "OSMetaClass::OSMetaClass(this,name,super,size)",
+      "to": "0xfffffff0075b846c",
+      "provider": "kernel",
+      "how": "Symbol __ZN11OSMetaClassC2EPKcPKS_j plus GOT; structure matches",
+      "target_symbols": [
+        "__ZN11OSMetaClassC2EPKcPKS_j"
+      ],
+      "call_sites": [
+        "0xfffffff0086f5514",
+        "0xfffffff0086f65d4",
+        "0xfffffff0086f6604",
+        "0xfffffff0086f95fc",
+        "0xfffffff0086f9628",
+        "0xfffffff0086f9654",
+        "0xfffffff0086f9684"
+      ]
+    },
+    "0xfffffff007cb0ee0": {
+      "id": "OSMetaClassBase::_ptmf2ptf",
+      "to": "0xfffffff0075b85dc",
+      "provider": "kernel",
+      "how": "Unique masked match of all five instructions. Audio passes a direct callback address in x1 and x2=0, then sends the result to the event-source factory.",
+      "target_symbols": [
+        "__ZN15OSMetaClassBase9_ptmf2ptfEPKS_MS_FvvEm"
+      ],
+      "call_sites": [
+        "0xfffffff0086efe14",
+        "0xfffffff0086f01a4",
+        "0xfffffff0086f66c0",
+        "0xfffffff0086f6d8c",
+        "0xfffffff0086f6e9c",
+        "0xfffffff0086f7240"
+      ]
+    },
+    "0xfffffff007cb0ef4": {
+      "id": "OSMetaClassBase::safeMetaCast(obj,meta)",
+      "to": "0xfffffff0075b85f0",
+      "provider": "kernel",
+      "how": "Symbol __ZN15OSMetaClassBase12safeMetaCastEPKS_PK11OSMetaClass; all 19 structural instructions match",
+      "target_symbols": [
+        "__ZN15OSMetaClassBase12safeMetaCastEPKS_PK11OSMetaClass"
+      ],
+      "call_sites": [
+        "0xfffffff0086effac",
+        "0xfffffff0086f001c",
+        "0xfffffff0086f0174",
+        "0xfffffff0086f4e24",
+        "0xfffffff0086f5104",
+        "0xfffffff0086f6cf4",
+        "0xfffffff0086f7d88",
+        "0xfffffff0086f7f94",
+        "0xfffffff0086f85b0",
+        "0xfffffff0086f8ca4",
+        "0xfffffff0086f8ce4"
+      ]
+    },
+    "0xfffffff007cb1a68": {
+      "id": "OSMetaClass::~OSMetaClass (D2)",
+      "to": "0xfffffff0075b8c30",
+      "provider": "kernel",
+      "how": "Symbol __ZN11OSMetaClassD2Ev; structure matches",
+      "target_symbols": [
+        "__ZN11OSMetaClassD2Ev"
+      ],
+      "call_sites": [
+        "0xfffffff0086efd38",
+        "0xfffffff0086f4d84",
+        "0xfffffff0086f5064",
+        "0xfffffff0086f5484",
+        "0xfffffff0086f54c8",
+        "0xfffffff0086f54d4",
+        "0xfffffff0086f6640",
+        "0xfffffff0086f664c",
+        "0xfffffff0086f665c",
+        "0xfffffff0086f6660",
+        "0xfffffff0086f814c",
+        "0xfffffff0086f815c",
+        "0xfffffff0086f8408",
+        "0xfffffff0086f95b0",
+        "0xfffffff0086f95c4",
+        "0xfffffff0086f95c8",
+        "0xfffffff0086f95cc",
+        "0xfffffff0086f96b4",
+        "0xfffffff0086f96c0",
+        "0xfffffff0086f96cc",
+        "0xfffffff0086f96dc"
+      ]
+    },
+    "0xfffffff007cb24b4": {
+      "id": "OSMetaClass::instanceConstructed() const",
+      "to": "0xfffffff0075b93c0",
+      "provider": "kernel",
+      "how": "Symbol __ZNK11OSMetaClass19instanceConstructedEv; all nine structural instructions match",
+      "target_symbols": [
+        "__ZNK11OSMetaClass19instanceConstructedEv"
+      ],
+      "call_sites": [
+        "0xfffffff0086efda4",
+        "0xfffffff0086f00d0",
+        "0xfffffff0086f035c",
+        "0xfffffff0086f4df0",
+        "0xfffffff0086f50d0",
+        "0xfffffff0086f7b04",
+        "0xfffffff0086f8474"
+      ]
+    },
+    "0xfffffff007cb4a64": {
+      "id": "OSObject::operator delete(void*,size_t)",
+      "to": "0xfffffff0075baaa4",
+      "provider": "kernel",
+      "how": "Symbol __ZN8OSObjectdlEPvm; structure matches",
+      "target_symbols": [
+        "__ZN8OSObjectdlEPvm"
+      ],
+      "call_sites": [
+        "0xfffffff0086efd58",
+        "0xfffffff0086f4da4",
+        "0xfffffff0086f5084",
+        "0xfffffff0086f8428"
+      ]
+    },
+    "0xfffffff007cb4b54": {
+      "id": "OSObject::operator new(size_t)",
+      "to": "0xfffffff0075bab14",
+      "provider": "kernel",
+      "how": "Symbol __ZN8OSObjectnwEm; structure matches",
+      "target_symbols": [
+        "__ZN8OSObjectnwEm"
+      ],
+      "call_sites": [
+        "0xfffffff0086efd78",
+        "0xfffffff0086f00a4",
+        "0xfffffff0086f0330",
+        "0xfffffff0086f4dc4",
+        "0xfffffff0086f50a4",
+        "0xfffffff0086f7ad8",
+        "0xfffffff0086f8448"
+      ]
+    },
+    "0xfffffff007cb6534": {
+      "id": "OSArray::withCapacity(capacity)",
+      "to": "0xfffffff0075bbe50",
+      "provider": "kernel",
+      "how": "The iOS 12 metaclass initializer names OSArray. Both versions allocate 0x28 bytes, call initWithCapacity (iOS 12 +0xc8 / iOS 13 +0xd0), release on failure and return the object on success.",
+      "target_symbols": [
+        "__ZN7OSArray12withCapacityEj"
+      ],
+      "call_sites": [
+        "0xfffffff0086f5268"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5b698",
+        "source_vtable": "0xfffffff00749c388",
+        "name": "OSArray",
+        "initializer": "0xfffffff007cb60f4",
+        "target_vtable": "0xfffffff00709e288"
+      }
+    },
+    "0xfffffff007cb6630": {
+      "id": "OSArray::withObjects(objects,count,capacity)",
+      "to": "0xfffffff0075bbee8",
+      "provider": "kernel",
+      "how": "Shares the OSArray vtable with withCapacity. Three arguments reach initWithObjects (iOS 12 +0xd0 / iOS 13 +0xd8); this call passes one object, count=1 and capacity=0.",
+      "target_symbols": [
+        "__ZN7OSArray11withObjectsEPPK8OSObjectjj"
+      ],
+      "call_sites": [
+        "0xfffffff0086f3380",
+        "0xfffffff0086f33ec",
+        "0xfffffff0086f3508",
+        "0xfffffff0086f35ac",
+        "0xfffffff0086f35fc"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5b698",
+        "source_vtable": "0xfffffff00749c388",
+        "name": "OSArray",
+        "initializer": "0xfffffff007cb60f4",
+        "target_vtable": "0xfffffff00709e288"
+      }
+    },
+    "0xfffffff007cb920c": {
+      "id": "OSCollectionIterator::withCollection",
+      "to": "0xfffffff0075bd720",
+      "provider": "kernel",
+      "how": "The iOS 12 initializer names OSCollectionIterator. Both allocate 0x28 bytes and call initWithCollection with the collection (iOS 12 +0x88 / iOS 13 +0x90).",
+      "target_symbols": [
+        "__ZN20OSCollectionIterator14withCollectionEPK12OSCollection"
+      ],
+      "call_sites": [
+        "0xfffffff0086f7f5c",
+        "0xfffffff0086f8c7c"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5b710",
+        "source_vtable": "0xfffffff00749c810",
+        "name": "OSCollectionIterator",
+        "initializer": "0xfffffff007cb8dcc",
+        "target_vtable": "0xfffffff00709e740"
+      }
+    },
+    "0xfffffff007cd9b1c": {
+      "id": "OSNumber::withNumber(value,bits)",
+      "to": "0xfffffff0075d5a44",
+      "provider": "kernel",
+      "how": "The iOS 12 initializer names OSNumber. Both allocate 0x18 bytes, preserve value and bits, and call init(value,bits) (iOS 12 +0x70 / iOS 13 +0x78). Audio uses bits=64.",
+      "target_symbols": [
+        "__ZN8OSNumber10withNumberEyj"
+      ],
+      "call_sites": [
+        "0xfffffff0086f5294",
+        "0xfffffff0086f5560",
+        "0xfffffff0086f5578",
+        "0xfffffff0086f5588",
+        "0xfffffff0086f559c"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5b808",
+        "source_vtable": "0xfffffff00749d140",
+        "name": "OSNumber",
+        "initializer": "0xfffffff007cd96dc",
+        "target_vtable": "0xfffffff00709f1a0"
+      }
+    },
+    "0xfffffff007cdbfc4": {
+      "id": "operator new[](size_t)",
+      "to": "0xfffffff0075d773c",
+      "provider": "kernel",
+      "how": "The 28-instruction bodies correspond block by block, allocate one byte for size=0, and account/zero after kalloc. The preceding source pair 0x7cdbf10/0x7cdbf84 is scalar new/delete.",
+      "target_symbols": [
+        "__Znam"
+      ],
+      "call_sites": [
+        "0xfffffff0086f4b14"
+      ]
+    },
+    "0xfffffff007cdc034": {
+      "id": "operator delete[](void*)",
+      "to": "0xfffffff0075d77ac",
+      "provider": "kernel",
+      "how": "The complete entry matches: return for null, read allocation size, decrement the same counter and tail-call free. Paired with array allocator 0x7cdbfc4.",
+      "target_symbols": [
+        "__ZdaPv"
+      ],
+      "call_sites": [
+        "0xfffffff0086f4c0c"
+      ]
+    },
+    "0xfffffff007ce343c": {
+      "id": "OSSymbol::withCString",
+      "to": "0xfffffff0075dc0f0",
+      "provider": "kernel",
+      "how": "Locks the symbol table, looks up or creates OSSymbol, copies the string and inserts it. iOS 12 calls 0x7cdff94 (allocate length+1 and memcpy); iOS 13 calls OSString::initWithCString=0x75da12c.",
+      "target_symbols": [
+        "__ZN8OSSymbol11withCStringEPKc"
+      ],
+      "call_sites": [
+        "0xfffffff0086f5530",
+        "0xfffffff0086f5544"
+      ]
+    },
+    "0xfffffff007cecc44": {
+      "id": "_os_log_internal(dso,log,type,format,...)",
+      "to": "0xfffffff0075e3394",
+      "provider": "kernel",
+      "how": "Both call sites pass Mach header, os_log, type, format and stack varargs. The iOS 13 wrapper forwards log/type/format/va_list to 0x75e33d8, retaining empty-string checks, the 0x500 filter and default-log-object checks.",
+      "target_symbols": [
+        "__os_log_internal"
+      ],
+      "call_sites": [
+        "0xfffffff0086f2b88",
+        "0xfffffff0086f4c00",
+        "0xfffffff0086f6918",
+        "0xfffffff0086f6a30",
+        "0xfffffff0086f6c7c",
+        "0xfffffff0086f7eb8",
+        "0xfffffff0086f85a0",
+        "0xfffffff0086f8690",
+        "0xfffffff0086f8714",
+        "0xfffffff0086f88cc",
+        "0xfffffff0086f894c",
+        "0xfffffff0086f8a1c",
+        "0xfffffff0086f8ae8",
+        "0xfffffff0086f8c00",
+        "0xfffffff0086f8e34"
+      ]
+    },
+    "0xfffffff007cfc4b4": {
+      "id": "IOSleep(milliseconds)",
+      "to": "0xfffffff0075f82e4",
+      "provider": "kernel",
+      "how": "All three wrapper instructions match: w1=1000000 followed by a tail call to delay_for_interval. The iOS 13 entry is 0x75f82e4 and tail target is 0x70efbc8.",
+      "target_symbols": [
+        "_IOSleep"
+      ],
+      "call_sites": [
+        "0xfffffff0086f0570",
+        "0xfffffff0086f676c"
+      ]
+    },
+    "0xfffffff007cfc594": {
+      "id": "IOLog(fmt,...)",
+      "to": "0xfffffff0075f830c",
+      "provider": "kernel",
+      "how": "Symbol _IOLog; 26 call sites with format strings and stack varargs",
+      "target_symbols": [
+        "_IOLog"
+      ],
+      "call_sites": [
+        "0xfffffff0086f2bac",
+        "0xfffffff0086f6954",
+        "0xfffffff0086f6a3c",
+        "0xfffffff0086f6ca0",
+        "0xfffffff0086f7f08",
+        "0xfffffff0086f86bc",
+        "0xfffffff0086f873c",
+        "0xfffffff0086f8978",
+        "0xfffffff0086f8a44",
+        "0xfffffff0086f8c30"
+      ]
+    },
+    "0xfffffff007d1d688": {
+      "id": "IOService::isInactive",
+      "to": "0xfffffff00761118c",
+      "provider": "kernel",
+      "how": "All eight instructions agree except the virtual slot: iOS 12 +0x290 / iOS 13 +0x298. Returns getState() & 1.",
+      "target_symbols": [
+        "__ZNK9IOService10isInactiveEv"
+      ],
+      "call_sites": [
+        "0xfffffff0086f93b8"
+      ]
+    },
+    "0xfffffff007d33210": {
+      "id": "IOService::registerInterestedDriver",
+      "to": "0xfffffff007622518",
+      "provider": "kernel",
+      "how": "Both check PM fields +0x68/+0x60/+0x38, lock +0xd8, create a capacity=4 OSSet at +0x238 and add the interested driver.",
+      "target_symbols": [
+        "__ZN9IOService24registerInterestedDriverEPS_"
+      ],
+      "call_sites": [
+        "0xfffffff0086f8a7c"
+      ]
+    },
+    "0xfffffff007d33474": {
+      "id": "IOService::deRegisterInterestedDriver",
+      "to": "0xfffffff0076226ac",
+      "provider": "kernel",
+      "how": "Uses the registration function PM structure and lock; removes the driver from the +0x238 set and walks the powerInformee list under +0x38. Audio passes object+0x198 as driver.",
+      "target_symbols": [
+        "__ZN9IOService26deRegisterInterestedDriverEPS_"
+      ],
+      "call_sites": [
+        "0xfffffff0086f8d48"
+      ]
+    },
+    "0xfffffff007d336c8": {
+      "id": "IOService::acknowledgePowerChange",
+      "to": "0xfffffff007622828",
+      "provider": "kernel",
+      "how": "Unique masked match for the first 24 instructions. Retains driver and stores it at PM request+0x68, uses request type 0x81 and preserves the IOReturn result.",
+      "target_symbols": [
+        "__ZN9IOService22acknowledgePowerChangeEPS_"
+      ],
+      "call_sites": [
+        "0xfffffff0086f6e54",
+        "0xfffffff0086f8d98"
+      ]
+    },
+    "0xfffffff007d44cb0": {
+      "id": "IOWorkLoop::workLoop",
+      "to": "0xfffffff00762bb60",
+      "provider": "kernel",
+      "how": "The iOS 12 initializer names IOWorkLoop. Both allocate 0x48 bytes, call init (iOS 12 +0x60 / iOS 13 +0x68) and release on failure.",
+      "target_symbols": [
+        "__ZN10IOWorkLoop8workLoopEv"
+      ],
+      "call_sites": [
+        "0xfffffff0086f66a8"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5c6d0",
+        "source_vtable": "0xfffffff0074a1198",
+        "name": "IOWorkLoop",
+        "initializer": "0xfffffff007d44870",
+        "target_vtable": "0xfffffff0070a4098"
+      }
+    },
+    "0xfffffff007d4747c": {
+      "id": "IOInterruptEventSource::interruptEventSource(owner,action,provider,index)",
+      "to": "0xfffffff00762d298",
+      "provider": "kernel",
+      "how": "The iOS 12 initializer names IOInterruptEventSource. Allocates 0x68 bytes and forwards four arguments in order to init (iOS 12 +0xd0 / iOS 13 +0xd8); audio uses its provider and index=0.",
+      "target_symbols": [
+        "__ZN22IOInterruptEventSource20interruptEventSourceEP8OSObjectPFvS1_PS_iEP9IOServicei"
+      ],
+      "call_sites": [
+        "0xfffffff0086efe28"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5c720",
+        "source_vtable": "0xfffffff0074a14c8",
+        "name": "IOInterruptEventSource",
+        "initializer": "0xfffffff007d46fe0",
+        "target_vtable": "0xfffffff0070a43e8"
+      }
+    },
+    "0xfffffff007d4e390": {
+      "id": "IOTimerEventSource::timerEventSource(owner,action)",
+      "to": "0xfffffff007631490",
+      "provider": "kernel",
+      "how": "The iOS 12 initializer names IOTimerEventSource. Allocates 0x60 bytes, fixes options=1 and forwards owner/action to init (iOS 12 +0x138 / iOS 13 +0x140).",
+      "target_symbols": [
+        "__ZN18IOTimerEventSource16timerEventSourceEP8OSObjectPFvS1_PS_E"
+      ],
+      "call_sites": [
+        "0xfffffff0086f01b0",
+        "0xfffffff0086f66cc"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5c810",
+        "source_vtable": "0xfffffff0074a1e30",
+        "name": "IOTimerEventSource",
+        "initializer": "0xfffffff007d4dc5c",
+        "target_vtable": "0xfffffff0070a4db0"
+      }
+    },
+    "0xfffffff007e6caa0": {
+      "id": "AppleARMPlatform::getFunction",
+      "to": "0xfffffff005fbe7ac",
+      "provider": "com.apple.driver.AppleARMPlatform",
+      "how": "Complete 20-instruction masked match; looks up an object by name and calls virtual slot +0x28.",
+      "target_symbols": [],
+      "call_sites": [
+        "0xfffffff0086eff3c"
+      ]
+    },
+    "0xfffffff007e6f5e0": {
+      "id": "AppleARMIISDevice factory(service,provider)",
+      "to": "0xfffffff005fc19c4",
+      "provider": "com.apple.driver.AppleARMPlatform",
+      "how": "Both allocate 0xc0 bytes, call IOService::C2(meta), install the AppleARMIISDevice vtable and call instanceConstructed. service/provider keep their order; init slot is iOS 12 +0x538 / iOS 13 +0x540.",
+      "target_symbols": [],
+      "call_sites": [
+        "0xfffffff0086f8834"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5e668",
+        "source_vtable": "0xfffffff0074d3b10",
+        "name": "AppleARMIISDevice",
+        "initializer": "0xfffffff007e70a98",
+        "target_meta": "0xfffffff0077f0530",
+        "target_vtable": "0xfffffff006dce530",
+        "target_initializer": "0xfffffff005fc313c"
+      }
+    }
+  },
+  "map": {
+    "0xfffffff007671510": "0xfffffff0070b5510",
+    "0xfffffff007671740": "0xfffffff0070b5740",
+    "0xfffffff007680650": "0xfffffff0070c4650",
+    "0xfffffff0076b4890": "0xfffffff0070efa7c",
+    "0xfffffff0076b4c08": "0xfffffff0070efd64",
+    "0xfffffff0076bb268": "0xfffffff0076a972c",
+    "0xfffffff007b2c1b8": "0xfffffff007491bbc",
+    "0xfffffff007bc8178": "0xfffffff0074f5b58",
+    "0xfffffff007cb0d60": "0xfffffff0075b846c",
+    "0xfffffff007cb0ee0": "0xfffffff0075b85dc",
+    "0xfffffff007cb0ef4": "0xfffffff0075b85f0",
+    "0xfffffff007cb1a68": "0xfffffff0075b8c30",
+    "0xfffffff007cb24b4": "0xfffffff0075b93c0",
+    "0xfffffff007cb4a64": "0xfffffff0075baaa4",
+    "0xfffffff007cb4b54": "0xfffffff0075bab14",
+    "0xfffffff007cb6534": "0xfffffff0075bbe50",
+    "0xfffffff007cb6630": "0xfffffff0075bbee8",
+    "0xfffffff007cb920c": "0xfffffff0075bd720",
+    "0xfffffff007cd9b1c": "0xfffffff0075d5a44",
+    "0xfffffff007cdbfc4": "0xfffffff0075d773c",
+    "0xfffffff007cdc034": "0xfffffff0075d77ac",
+    "0xfffffff007ce343c": "0xfffffff0075dc0f0",
+    "0xfffffff007cecc44": "0xfffffff0075e3394",
+    "0xfffffff007cfc4b4": "0xfffffff0075f82e4",
+    "0xfffffff007cfc594": "0xfffffff0075f830c",
+    "0xfffffff007d1d688": "0xfffffff00761118c",
+    "0xfffffff007d33210": "0xfffffff007622518",
+    "0xfffffff007d33474": "0xfffffff0076226ac",
+    "0xfffffff007d336c8": "0xfffffff007622828",
+    "0xfffffff007d44cb0": "0xfffffff00762bb60",
+    "0xfffffff007d4747c": "0xfffffff00762d298",
+    "0xfffffff007d4e390": "0xfffffff007631490",
+    "0xfffffff007e6caa0": "0xfffffff005fbe7ac",
+    "0xfffffff007e6f5e0": "0xfffffff005fc19c4"
+  },
+  "unresolved": [],
+  "iosleep": {
+    "source": "0xfffffff007cfc4b4",
+    "target": "0xfffffff0075f82e4",
+    "scale": 1000000,
+    "source_delay": "0xfffffff0076b4a5c",
+    "target_delay": "0xfffffff0070efbc8"
+  },
+  "data_globals": {
+    "0xfffffff008a5b95c": {
+      "id": "_os_log_default",
+      "kind": "address",
+      "to": "0xfffffff007733414",
+      "target_symbol": "__os_log_default",
+      "reference_pcs": [
+        "0xfffffff0086f2b78",
+        "0xfffffff0086f4bf0",
+        "0xfffffff0086f6908",
+        "0xfffffff0086f6a20",
+        "0xfffffff0086f6c6c",
+        "0xfffffff0086f7ea8",
+        "0xfffffff0086f8590",
+        "0xfffffff0086f8680",
+        "0xfffffff0086f8704",
+        "0xfffffff0086f88bc",
+        "0xfffffff0086f893c",
+        "0xfffffff0086f8a0c",
+        "0xfffffff0086f8ad8",
+        "0xfffffff0086f8bf0",
+        "0xfffffff0086f8e24"
+      ],
+      "how": "Audio uses this address as the log argument of _os_log_internal. iOS 12 0x7cecc30 and iOS 13 _os_log_create=0x75e3388 each return the default log-object address in three instructions."
+    },
+    "0xfffffff008a12080": {
+      "id": "__stack_chk_guard",
+      "kind": "value_address",
+      "to": "0xfffffff0076eb000",
+      "target_symbol": "___stack_chk_guard",
+      "reference_pcs": [
+        "0xfffffff0086efe00",
+        "0xfffffff0086f01f8",
+        "0xfffffff0086f07c8",
+        "0xfffffff0086f282c",
+        "0xfffffff0086f2efc",
+        "0xfffffff0086f3020",
+        "0xfffffff0086f3348",
+        "0xfffffff0086f3420",
+        "0xfffffff0086f3774",
+        "0xfffffff0086f38b0",
+        "0xfffffff0086f38e0",
+        "0xfffffff0086f3920",
+        "0xfffffff0086f3948",
+        "0xfffffff0086f3fd0",
+        "0xfffffff0086f4150",
+        "0xfffffff0086f43dc",
+        "0xfffffff0086f4438",
+        "0xfffffff0086f4588",
+        "0xfffffff0086f4a48",
+        "0xfffffff0086f6714",
+        "0xfffffff0086f698c",
+        "0xfffffff0086f72a0",
+        "0xfffffff0086f74cc"
+      ],
+      "how": "Audio reads the 64-bit stack guard here; iOS 13 exports ___stack_chk_guard=0x76eb000."
+    },
+    "0xfffffff00749c928": {
+      "id": "OSData::metaClass pointer",
+      "kind": "metaclass_pointer_slot",
+      "source_pointee": "0xfffffff008a5b738",
+      "target_pointee": "0xfffffff0077331f0",
+      "target_gmeta_symbol": "__ZN6OSData10gMetaClassE",
+      "target_existing_pointer_slot": "0xfffffff00709e868",
+      "reference_pcs": [
+        "0xfffffff0086eff5c",
+        "0xfffffff0086f7f78"
+      ],
+      "source_class_initializer": "0xfffffff007cba6d0",
+      "how": "The old read-only slot points to OSData::gMetaClass. Source initializer arguments confirm its name, and the native iOS 13 metaClass pointer slot reads back the same target gMetaClass.",
+      "resolution": "Write target_pointee into the injected read-only segment and map the old LDR slot address to the new slot."
+    },
+    "0xfffffff00749d120": {
+      "id": "OSNumber::metaClass pointer",
+      "kind": "metaclass_pointer_slot",
+      "source_pointee": "0xfffffff008a5b808",
+      "target_pointee": "0xfffffff0077332c0",
+      "target_gmeta_symbol": "__ZN8OSNumber10gMetaClassE",
+      "target_existing_pointer_slot": "0xfffffff00709f180",
+      "reference_pcs": [
+        "0xfffffff0086f8c9c"
+      ],
+      "source_class_initializer": "0xfffffff007cd96dc",
+      "how": "The old read-only slot points to OSNumber::gMetaClass. Source initializer arguments confirm its name, and the native iOS 13 metaClass pointer slot reads back the same target gMetaClass.",
+      "resolution": "Write target_pointee into the injected read-only segment and map the old LDR slot address to the new slot."
+    },
+    "0xfffffff00749dea8": {
+      "id": "IORegistryEntry::metaClass pointer",
+      "kind": "metaclass_pointer_slot",
+      "source_pointee": "0xfffffff008a5c098",
+      "target_pointee": "0xfffffff007733c40",
+      "target_gmeta_symbol": "__ZN15IORegistryEntry10gMetaClassE",
+      "target_existing_pointer_slot": "0xfffffff0070a0648",
+      "reference_pcs": [
+        "0xfffffff0086f85cc"
+      ],
+      "source_class_initializer": "0xfffffff007d08c28",
+      "how": "The old read-only slot points to IORegistryEntry::gMetaClass. Source initializer arguments confirm its name, and the native iOS 13 metaClass pointer slot reads back the same target gMetaClass.",
+      "resolution": "Write target_pointee into the injected read-only segment and map the old LDR slot address to the new slot."
+    }
+  }
+}

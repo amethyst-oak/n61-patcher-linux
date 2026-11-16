@@ -1,0 +1,46 @@
+# Generated outputs and local firmware
+/donors/
+/ipsw/
+/state/
+/build/
+/extracted/
+*.ipsw
+*.dmg
+*.img4
+*.raw
+IM4M*
+*keybag*
+*.p12
+# Python / miscellaneous
+__pycache__/
+*.pyc
+.DS_Store
+
+/tools/bin/
+/tools/checkra1n-kpf/checkra1n/kpf-test/kpf-test.macos
+.venv/
+
+# Device/host diagnostics can contain account and hardware identifiers.
+/logs/
+*.log
+
+# Local packages and generated archives
+*.deb
+*.tar
+*.zip
+*.ipa
+
+# Device-specific signing data
+*.shsh
+tools/SSHRD_Script/other/
+
+# Extracted Apple filesystem utilities
+tools/dualra1n/other/apfsios14/
+rootfs_patch/
+
+# SSH ramdisk payload archives
+tools/SSHRD_Script/sshtars/*.tar
+
+# Local Debian packages, including versioned backup copies
+*.deb*
+/tools/checkra1n
