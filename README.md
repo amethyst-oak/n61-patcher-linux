@@ -28,7 +28,7 @@ sudo apt install git build-essential clang lld llvm xz-utils p7zip-full dmg2img 
 # apfs-fuse is not packaged: https://github.com/sgan81/apfs-fuse
 sudo modprobe hfsplus fuse
 
-git clone --recursive https://github.com/tlfares/n61-patcher.git && cd n61-patcher
+git clone --recursive https://github.com/amethyst-oak/n61-patcher-linux.git && cd n61-patcher-linux
 python3 -m venv .venv && .venv/bin/python -m pip install -r requirements.txt pillow pillow-heif
 export IPHONEOS_SDK=/path/to/iPhoneOS14.5.sdk      # e.g. from https://github.com/theos/sdks
 

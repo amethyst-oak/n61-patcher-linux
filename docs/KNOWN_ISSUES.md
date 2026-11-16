@@ -6,16 +6,16 @@ Observed on one iPhone 6 installed from one Debian x86_64 laptop. "Cause unknown
 
 The install includes the checkra1n loader and a Cydia bootstrap. That bootstrap is old, and most trouble reported below comes from it.
 
-| Symptom | What was seen | Status |
+| Symptom | What was seen | Status | Fix |
 | --- | --- | --- |
-| `/` is read-only, `dpkg` says "Read-only file system" | Seen once, together with a safe-mode loop and a stuck lockdown. A **fresh reinstall** (stock iOS 12, then the install again) cleared it | Cause unknown. Not reproduced since |
+| `/` is read-only, `dpkg` says "Read-only file system" | Seen once, together with a safe-mode loop and a stuck lockdown. A **fresh reinstall** (stock iOS 12, then the install again) cleared it | Cause unknown. Not reproduced since | You can use ssh using the same commands as in NewTerm, or if you have NewTerm or any Terminal Emulator, type `su` (password: alpine), `mount -uw /`. |
 | Cydia upgrade fails on a `bigboss.gpg` conflict | Two sources ship the same key file | Remove the duplicate source or key; no fix in this repo |
 | Old `dpkg` cannot read `.deb` files compressed with zstd | Procursus packages, including `libzstd`, loop on dependencies | Workaround is experimental: `tools/extras/deb_zst_to_xz.py` repacks as xz. The zstd step was **never run** |
 | Zebra shows `Popen` errors | Zebra could not run its helper commands | Unresolved. Sileo did not show the error |
 | Sileo installs and works | Sileo was installed once and could install packages | Works for that user. Not a verified recipe |
 | Sileo cannot add `https://apt.procurs.us` | Procursus is a *suite* repo, not a flat one. Tapping Add did nothing | Needs the suite file: suite `iphoneos-arm64/1600`, component `main`, architecture `iphoneos-arm`. Not confirmed to work |
-| Python fetch of `apt.procurs.us` returns 403 | The repo rejects Python's default User-Agent | `tools/extras/dep_closure.py` sends a curl-style UA |
-| Odysseyra1n migration script | Suggested elsewhere; **not run or checked here** | Untested; do not assume it fits this install |
+| Tweaks don't work at reboot | Tweaks don't inject (Anything that shows in Settings, etc.)  | Do not assume it will always work... | In NewTerm/SSH Tunnel: `su` (password: alpine), `/etc/rc.d/substrate && killall -9 installd && ldrestart`. The iPhone's userspace will restart, do not worry. |
+| Odysseyra1n migration script | Suggested elsewhere; **not run or checked here** | **Untested**. Do not assume it will work. |
 | `cydia.status` is fetched without a hash | The bootstrap pieces are not integrity-checked by this repo | Known gap |
 
 ### Things that might work (untested)
@@ -29,9 +29,8 @@ Treat both as experiments on a phone you are ready to reinstall.
 
 | Area | Status |
 | --- | --- |
-| App Store sign-in | Failed on the Linux tester's phone; it worked for the upstream tester. Cause unknown |
-| Amethyst | Not tested and not supported by this port |
-| NewTerm | Did not open on the tester's phone; cause unknown |
+| App Store sign-in | Worked in original macOS repo, as is in Linux one. Needs StoreAuthFix by computershik to function normally.|
+| NewTerm | Works fine |
 | Touch ID | Not working (disabled; SEP errors when enabled) |
 | Audio recording, AirPods output | Not working |
 | Health | Excluded |
