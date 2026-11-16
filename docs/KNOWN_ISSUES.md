@@ -7,7 +7,7 @@ Observed on one iPhone 6 installed from one Debian x86_64 laptop. "Cause unknown
 The install includes the checkra1n loader and a Cydia bootstrap. That bootstrap is old, and most trouble reported below comes from it.
 
 | Symptom | What was seen | Status | Fix |
-| --- | --- | --- |
+| --- | --- | --- | --- |
 | `/` is read-only, `dpkg` says "Read-only file system" | Seen once, together with a safe-mode loop and a stuck lockdown. A **fresh reinstall** (stock iOS 12, then the install again) cleared it | Cause unknown. Not reproduced since | You can use ssh using the same commands as in NewTerm, or if you have NewTerm or any Terminal Emulator, type `su` (password: alpine), `mount -uw /`. |
 | Cydia upgrade fails on a `bigboss.gpg` conflict | Two sources ship the same key file | Remove the duplicate source or key; no fix in this repo |
 | Old `dpkg` cannot read `.deb` files compressed with zstd | Procursus packages, including `libzstd`, loop on dependencies | Workaround is experimental: `tools/extras/deb_zst_to_xz.py` repacks as xz. The zstd step was **never run** |
