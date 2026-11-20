@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111214">
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+  </script>
+  <meta name="description" content="An experimental Linux port for installing iOS 13.7 beside iOS 12.5.8 on the iPhone 6 (N61AP). Project notes, compatibility, and an installation walkthrough.">
+  <title>n61-patcher — iOS 13.7 on iPhone 6, from Linux</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111214;
+      --bg-2: #17191c;
+      --panel: #1c1f22;
+      --panel-2: #222529;
+      --line: #34383d;
+      --line-soft: #292d31;
+      --text: #eceeed;
+      --muted: #a1a6a7;
+      --dim: #737a7c;
+      --silver: #c4c9c9;
+      --green: #9cba9b;
+      --amber: #c5ad81;
+      --red: #cc8985;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --serif: Georgia, "Times New Roman", serif;
+      --max: 1160px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 86px; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans);
+      line-height: 1.6; -webkit-font-smoothing: antialiased;
+      background-image: radial-gradient(ellipse at 74% 3%, rgba(180,190,190,.075), transparent 33%),
+                        linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px),
+                        linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px);
+      background-size: auto, 48px 48px, 48px 48px;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    .wrap { width: min(var(--max), calc(100% - 48px)); margin: 0 auto; }
+    .topbar {
+      position: sticky; top: 0; z-index: 30; border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(17,18,20,.88); backdrop-filter: blur(18px);
+    }
+    .nav { height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 650; letter-spacing: -.02em; }
+    .brand small { display: block; margin-top: -3px; color: var(--dim); font: 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+    .navlinks { display: flex; align-items: center; gap: 27px; color: #adb2b3; font-size: 12px; }
+    .navlinks a { transition: color .2s; }
+    .navlinks a:hover { color: white; }
+    .nav-cta { padding: 9px 13px; border: 1px solid #565d60; border-radius: 5px; color: #e8eae9; }
+    .nav-cta:hover { background: #25292c; }
+
+    .hero { position: relative; min-height: 620px; padding: 88px 0 76px; overflow: hidden; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(350px, .92fr); gap: 40px; align-items: center; position: relative; z-index: 1; }
+    .eyebrow { display: flex; align-items: center; gap: 10px; color: #aeb5b4; font: 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .dot { width: 7px; height: 7px; background: var(--amber); border-radius: 50%; box-shadow: 0 0 0 4px rgba(197,173,129,.1); }
+    h1 { max-width: 680px; margin: 22px 0 22px; font-size: clamp(46px, 6vw, 76px); line-height: .99; letter-spacing: -.065em; font-weight: 590; }
+    h1 span { color: #aeb5b4; font-family: var(--serif); font-weight: 400; font-style: italic; letter-spacing: -.055em; }
+    .hero-copy { max-width: 540px; color: #aeb4b5; font-size: 16px; line-height: 1.8; }
+    .hero-copy strong { color: #e4e7e6; font-weight: 600; }
+    .actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 31px; }
+    .button { display: inline-flex; justify-content: center; align-items: center; gap: 10px; min-height: 44px; padding: 0 17px; border-radius: 5px; border: 1px solid #62696b; color: #eceeed; font-size: 12px; font-weight: 650; cursor: pointer; transition: background .2s, border-color .2s, transform .2s; }
+    .button:hover { background: #282c30; border-color: #899092; transform: translateY(-1px); }
+    .button.primary { background: #d5d9d7; border-color: #d5d9d7; color: #151718; }
+    .button.primary:hover { background: #f0f2f1; }
+    .button svg { width: 14px; height: 14px; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 23px; margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--line-soft); max-width: 520px; }
+    .meta-item { color: var(--dim); font: 10px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+    .meta-item b { display: block; margin-top: 4px; color: #dfe2e1; font: 12px var(--sans); letter-spacing: 0; text-transform: none; }
+
+    .device-stage { min-height: 455px; position: relative; display: grid; place-items: center; isolation: isolate; }
+    .device-stage:before { content: ""; position: absolute; width: 390px; height: 390px; border: 1px solid rgba(255,255,255,.08); border-radius: 50%; box-shadow: 0 0 0 35px rgba(255,255,255,.012), 0 0 0 78px rgba(255,255,255,.009); }
+    .device-stage:after { content: ""; position: absolute; width: 310px; height: 24px; bottom: 25px; background: rgba(0,0,0,.65); filter: blur(17px); border-radius: 50%; }
+    .device-caption { position: absolute; left: 0; bottom: 0; display: flex; justify-content: space-between; gap: 15px; width: 100%; color: #858b8d; font: 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+    .model-wrap { position: relative; z-index: 2; width: min(100%, 380px); height: 430px; transform: translateY(-20px); touch-action: none; cursor: grab; }
+    .model-wrap:active { cursor: grabbing; }
+    #modelViewer { position: absolute; inset: 0; }
+    #modelViewer canvas { display: block; width: 100%; height: 100%; outline: none; }
+    .model-status { position: absolute; z-index: 3; top: 12px; left: 50%; transform: translateX(-50%); color: #8d9697; font: 9px var(--mono); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; pointer-events: none; }
+    .model-status.error { color: var(--red); white-space: normal; text-align: center; width: 90%; }
+    .phone-controls { position: absolute; z-index: 5; bottom: 29px; left: 50%; transform: translateX(-50%); display: flex; gap: 7px; align-items: center; max-width: calc(100% - 20px); }
+    .phone-controls button { white-space: nowrap; border: 1px solid #4a5053; border-radius: 20px; background: rgba(23,26,28,.82); color: #d5d9d8; padding: 7px 11px; font: 10px var(--mono); cursor: pointer; }
+    .phone-controls button:hover, .phone-controls button.active { background: #d5d9d7; color: #141719; border-color: #d5d9d7; }
+    .drag-note { position: absolute; z-index: 3; top: 30px; right: 0; color: #81888a; font: 9px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+
+
+    .section { padding: 94px 0; border-top: 1px solid var(--line-soft); }
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 30px; margin-bottom: 35px; }
+    .kicker { color: #879091; font: 10px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+    h2 { margin: 9px 0 0; font-size: clamp(30px, 4vw, 45px); font-weight: 560; line-height: 1.08; letter-spacing: -.05em; }
+    .section-intro { max-width: 440px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.8; }
+    .overview-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 15px; }
+    .feature-card { position: relative; overflow: hidden; min-height: 220px; padding: 26px; background: linear-gradient(140deg,#202428,#191c1f); border: 1px solid #33393d; border-radius: 7px; }
+    .feature-card.large { min-height: 290px; grid-row: span 2; }
+    .feature-card .index { color: #798183; font: 10px var(--mono); letter-spacing: .1em; }
+    .feature-card h3 { margin: 54px 0 9px; font-size: 22px; font-weight: 550; letter-spacing: -.04em; }
+    .feature-card p { max-width: 410px; margin: 0; color: #a2a9aa; font-size: 12px; line-height: 1.8; }
+    .feature-card.large h3 { margin-top: 90px; font-size: 30px; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 22px; }
+    .chip { padding: 5px 8px; border: 1px solid #454c4f; border-radius: 3px; color: #b9c0c0; font: 9px var(--mono); letter-spacing: .04em; }
+    .device-facts { display: grid; grid-template-columns: repeat(4,1fr); margin-top: 15px; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+    .fact { padding: 18px 20px; background: rgba(255,255,255,.018); border-right: 1px solid var(--line); }
+    .fact:last-child { border: 0; }
+    .fact small { display: block; color: #81898b; font: 9px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .fact b { display: block; margin-top: 5px; color: #e4e7e6; font-size: 13px; font-weight: 570; }
+
+    .status-layout { display: grid; grid-template-columns: .7fr 1.3fr; gap: 42px; align-items: start; }
+    .status-note { padding: 23px; border: 1px solid #48453e; background: rgba(197,173,129,.055); border-radius: 6px; }
+    .status-note .flag { display: inline-flex; align-items: center; gap: 8px; color: #d2bd96; font: 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+    .status-note h3 { margin: 15px 0 8px; font-size: 22px; line-height: 1.2; letter-spacing: -.04em; font-weight: 550; }
+    .status-note p { margin: 0; color: #a9aaa3; font-size: 12px; line-height: 1.8; }
+    .status-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .status-table th { padding: 0 12px 13px; text-align: left; color: #81898a; font: 9px var(--mono); letter-spacing: .11em; text-transform: uppercase; }
+    .status-table td { padding: 13px 12px; border-top: 1px solid var(--line-soft); vertical-align: top; }
+    .status-table td:first-child { padding-left: 0; color: #e1e4e3; width: 29%; font-weight: 550; }
+    .status-table td:last-child { color: #a5acad; line-height: 1.65; }
+    .state { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font: 10px var(--mono); }
+    .state:before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .state.good { color: var(--green); }
+    .state.partial { color: var(--amber); }
+    .state.off { color: var(--red); }
+    .table-foot { margin-top: 16px; color: #777f81; font: 10px var(--mono); line-height: 1.7; }
+
+    .guide { display: grid; grid-template-columns: 290px minmax(0,1fr); gap: 38px; align-items: start; }
+    .guide-aside { position: sticky; top: 96px; }
+    .guide-aside p { margin: 12px 0 20px; color: #9da5a6; font-size: 12px; line-height: 1.8; }
+    .guide-links { display: grid; gap: 8px; color: #b5bbba; font: 10px var(--mono); }
+    .guide-links a { padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
+    .guide-links a:hover { color: white; }
+    .guide-warning { margin-top: 24px; padding: 15px; border-left: 2px solid var(--amber); background: rgba(197,173,129,.055); color: #b6ad9d; font-size: 11px; line-height: 1.7; }
+    .guide-steps { border-top: 1px solid var(--line); }
+    details.step { border-bottom: 1px solid var(--line); }
+    details.step summary { display: grid; grid-template-columns: 45px 1fr 20px; align-items: center; gap: 12px; padding: 20px 4px; cursor: pointer; list-style: none; }
+    details.step summary::-webkit-details-marker { display: none; }
+    .step-no { color: #7e8788; font: 11px var(--mono); }
+    .step-title { color: #e6e8e7; font-size: 15px; font-weight: 560; letter-spacing: -.02em; }
+    .step-sub { display: block; margin-top: 3px; color: #8d9697; font-size: 11px; font-weight: 400; letter-spacing: 0; }
+    .step-plus { color: #7b8485; font-size: 20px; font-weight: 300; transition: transform .2s; }
+    details[open] .step-plus { transform: rotate(45deg); }
+    .step-body { padding: 0 4px 25px 61px; color: #aab1b1; font-size: 12px; line-height: 1.8; }
+    .step-body p { margin: 0 0 13px; }
+    .step-body ul { padding-left: 17px; margin: 8px 0 15px; }
+    .step-body li { padding: 2px 0; }
+    .codebox { position: relative; margin: 13px 0 16px; border: 1px solid #353b3e; border-radius: 5px; background: #0b0d0f; overflow: hidden; }
+    .codehead { display: flex; align-items: center; justify-content: space-between; padding: 8px 11px; border-bottom: 1px solid #252a2d; color: #788183; font: 9px var(--mono); letter-spacing: .09em; text-transform: uppercase; }
+    .copy { border: 0; background: transparent; color: #b7bfbe; cursor: pointer; font: 10px var(--mono); }
+    .copy:hover { color: white; }
+    pre { margin: 0; padding: 14px; overflow-x: auto; color: #d0d5d3; font: 11px/1.75 var(--mono); tab-size: 4; }
+    code { font-family: var(--mono); }
+    .inline-code { padding: 2px 5px; border: 1px solid #3c4244; border-radius: 3px; background: #202427; color: #d5dad8; font: 10px var(--mono); }
+    .guide-link { color: #d7dcda; text-decoration: underline; text-decoration-color: #666f70; text-underline-offset: 3px; }
+
+    .prep-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: 26px; align-items: start; }
+    .prep-copy { max-width: 380px; color: #a5acad; font-size: 13px; line-height: 1.8; }
+    .check-panel { padding: 22px; border: 1px solid #373d40; border-radius: 6px; background: #191c1f; }
+    .check-top { display: flex; justify-content: space-between; gap: 15px; align-items: center; margin-bottom: 17px; }
+    .check-top b { font-size: 13px; font-weight: 580; }
+    .check-count { color: #90999a; font: 10px var(--mono); }
+    .progress { height: 3px; margin-bottom: 17px; background: #343a3d; overflow: hidden; border-radius: 3px; }
+    .progress span { display: block; height: 100%; width: 0; background: #c8ceca; transition: width .25s; }
+    .checklist { display: grid; gap: 0; }
+    .check-row { display: flex; align-items: start; gap: 11px; padding: 12px 0; border-top: 1px solid #2b3033; color: #b2b9b9; font-size: 12px; cursor: pointer; }
+    .check-row input { width: 15px; height: 15px; margin: 1px 0 0; accent-color: #c7ceca; flex: 0 0 auto; }
+    .check-row:has(input:checked) span { color: #7d8787; text-decoration: line-through; text-decoration-color: #697171; }
+    .reset-checks { display: inline-block; margin-top: 16px; padding: 0; border: 0; background: none; color: #858e8f; cursor: pointer; font: 10px var(--mono); }
+    .reset-checks:hover { color: #d5dad8; }
+
+    .field-notes { display: grid; grid-template-columns: repeat(3,1fr); gap: 13px; }
+    .note { padding: 22px; min-height: 190px; background: #191c1f; border: 1px solid #31373a; border-radius: 5px; }
+    .note small { color: #828b8d; font: 9px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .note h3 { margin: 24px 0 8px; font-size: 16px; font-weight: 560; letter-spacing: -.03em; }
+    .note p { margin: 0; color: #9ea6a7; font-size: 11px; line-height: 1.8; }
+
+    footer { padding: 35px 0 42px; border-top: 1px solid var(--line); background: #0d0f10; }
+    .footer-top { display: flex; justify-content: space-between; align-items: start; gap: 30px; }
+    .footer-brand { color: #e2e5e3; font-size: 13px; font-weight: 600; }
+    .footer-copy { max-width: 475px; margin-top: 8px; color: #7f8889; font-size: 11px; line-height: 1.8; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 18px; color: #a6adad; font: 10px var(--mono); }
+    .footer-links a:hover { color: white; }
+    .footer-bottom { display: flex; justify-content: space-between; gap: 15px; margin-top: 31px; padding-top: 15px; border-top: 1px solid #24292b; color: #5f686a; font: 9px var(--mono); letter-spacing: .04em; }
+    .toast { position: fixed; z-index: 50; right: 24px; bottom: 24px; padding: 11px 15px; border: 1px solid #555e5f; border-radius: 5px; background: #d5d9d7; color: #16191a; font-size: 11px; opacity: 0; transform: translateY(8px); transition: .2s; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) { *, *:before, *:after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } .reveal { opacity: 1; transform: none; } }
+    @media (max-width: 850px) {
+      .hero { padding-top: 65px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 15px; }
+      .hero-copy { max-width: 620px; }
+      .device-stage { min-height: 445px; }
+      .device-caption { width: min(100%,540px); left: 50%; transform: translateX(-50%); }
+      .overview-grid { grid-template-columns: 1fr 1fr; }
+      .feature-card.large { grid-column: span 2; grid-row: auto; min-height: 245px; }
+      .feature-card.large h3 { margin-top: 55px; }
+      .status-layout { grid-template-columns: 1fr; gap: 25px; }
+      .guide { grid-template-columns: 1fr; gap: 25px; }
+      .guide-aside { position: static; }
+      .guide-links { grid-template-columns: repeat(3,1fr); }
+      .guide-warning { max-width: 500px; }
+      .prep-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .wrap { width: min(100% - 32px, var(--max)); }
+      .nav { height: 62px; }
+      .navlinks { gap: 14px; }
+      .navlinks a:not(.nav-cta) { display: none; }
+      .hero { min-height: auto; padding: 59px 0 48px; }
+      h1 { font-size: clamp(43px, 13vw, 64px); }
+      .hero-copy { font-size: 14px; }
+      .hero-meta { gap: 16px; }
+      .device-stage { min-height: 410px; margin-top: 8px; }
+      .device-stage:before { width: 290px; height: 290px; }
+      .model-wrap { width: min(100%, 350px); height: 390px; transform: translateY(-18px); }
+      .drag-note { top: 5px; right: 2px; }
+      .device-caption { bottom: 1px; font-size: 8px; }
+      .section { padding: 68px 0; }
+      .section-head { display: block; margin-bottom: 25px; }
+      .section-intro { margin-top: 15px; }
+      .overview-grid { grid-template-columns: 1fr; }
+      .feature-card.large { grid-column: auto; min-height: 235px; }
+      .feature-card h3 { margin-top: 33px; }
+      .feature-card.large h3 { margin-top: 45px; }
+      .device-facts { grid-template-columns: 1fr 1fr; }
+      .fact:nth-child(2) { border-right: 0; }
+      .fact:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .status-table th:nth-child(2), .status-table td:nth-child(2) { display: none; }
+      .status-table td:first-child { width: 36%; }
+      .guide-links { grid-template-columns: 1fr 1fr; }
+      .step-body { padding-left: 3px; }
+      details.step summary { grid-template-columns: 34px 1fr 20px; gap: 8px; }
+      .field-notes { grid-template-columns: 1fr; }
+      .note { min-height: auto; }
+      .note h3 { margin-top: 16px; }
+      .footer-top, .footer-bottom { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap nav">
+      <a class="brand" href="#top" aria-label="n61-patcher home">
+        <span>n61-patcher <small>linux port / project notes</small></span>
+      </a>
+      <nav class="navlinks" aria-label="Main navigation">
+        <a href="#about">About</a>
+        <a href="#status">Compatibility</a>
+        <a href="#guide">Install guide</a>
+        <a class="nav-cta" href="https://github.com/amethyst-oak/n61-patcher-linux" target="_blank" rel="noreferrer">View on GitHub ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <div class="eyebrow"><span class="dot"></span> An experimental second system</div>
+          <h1>iOS 13.7.<br>On an iPhone 6.<br><span>Built from Linux.</span></h1>
+          <p class="hero-copy">A Linux port of the N61 patcher, built to install <strong>iOS 13.7 alongside iOS 12.5.8</strong> on the original iPhone 6. No Mac required for the main flow — just a Linux host, the right firmware, and a healthy respect for backups.</p>
+          <div class="actions">
+            <a class="button primary" href="#guide">Read the install guide <span aria-hidden="true">↓</span></a>
+            <a class="button" href="https://github.com/amethyst-oak/n61-patcher-linux" target="_blank" rel="noreferrer">Browse source <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="hero-meta">
+            <div class="meta-item">Target<b>iPhone7,2 / N61AP</b></div>
+            <div class="meta-item">Host<b>Linux · x86_64 tested</b></div>
+            <div class="meta-item">System<b>iOS 13.7 · 17H35</b></div>
+          </div>
+        </div>
+
+        <div class="device-stage" aria-label="Interactive iPhone 6 model">
+          <div class="drag-note">Drag to inspect</div>
+          <div class="model-wrap" id="modelViewer" aria-label="Three.js iPhone 6 GLB viewer">
+            <div class="model-status" id="modelStatus">Loading 3D model</div>
+          </div>
+          <div class="phone-controls" aria-label="Phone rotation controls">
+            <button type="button" data-view="front" class="active">Front</button>
+            <button type="button" data-view="back">Back</button>
+            <button type="button" id="spinButton" class="active">Pause rotation ‖</button>
+          </div>
+          <div class="device-caption"><span>iPhone 6 · Space Gray</span><span>Three.js · GLB · 138.1 × 67.0 × 6.9 mm</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div><div class="kicker">01 / What this is</div><h2>A second system, not an update.</h2></div>
+          <p class="section-intro">The project adds a second APFS system volume and boots it through a tethered chain. Your existing iOS 12.5.8 installation is the starting point — this is not a normal IPSW restore.</p>
+        </div>
+        <div class="overview-grid reveal">
+          <article class="feature-card large">
+            <span class="index">01 — THE IDEA</span>
+            <h3>Two iOS versions.<br>One very old phone.</h3>
+            <p>Keep the native iOS 12.5.8 SystemA, then build iOS 13.7 as SystemB. Booting SystemB is tethered: after a restart, the Linux computer and DFU mode are needed again.</p>
+            <div class="chip-row"><span class="chip">SystemA · 12.5.8</span><span class="chip">SystemB · 13.7</span><span class="chip">APFS</span></div>
+          </article>
+          <article class="feature-card">
+            <span class="index">02 — THE HOST</span>
+            <h3>Linux is the point.</h3>
+            <p>The port replaces macOS-only tools with Linux alternatives for extraction, signing helpers, device-tree repacking and the kernel patch finder.</p>
+          </article>
+          <article class="feature-card">
+            <span class="index">03 — THE REALITY</span>
+            <h3>Experimental by design.</h3>
+            <p>The end-to-end Linux run has been confirmed on one iPhone 6 and one Debian x86_64 laptop. Other hosts and devices are not validated.</p>
+          </article>
+        </div>
+        <div class="device-facts reveal">
+          <div class="fact"><small>Board</small><b>N61AP</b></div>
+          <div class="fact"><small>Product ID</small><b>iPhone7,2</b></div>
+          <div class="fact"><small>Chip</small><b>Apple A8</b></div>
+          <div class="fact"><small>Required base</small><b>iOS 12.5.8 · 16H88</b></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="status">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div><div class="kicker">02 / Compatibility</div><h2>What works. What doesn't.</h2></div>
+          <p class="section-intro">These are the project's published test notes, not promises about every device. A patch being present does not mean the hardware feature is fully working.</p>
+        </div>
+        <div class="status-layout reveal">
+          <aside class="status-note">
+            <div class="flag"><span class="dot"></span> Read before proceeding</div>
+            <h3>This is not a daily-driver build.</h3>
+            <p>Touch ID is disabled. Audio recording and AirPods output are known problems. The boot arguments also disable AMFI and code-signing enforcement, and jailbreak tooling is installed. Cellular, cameras, GPS, Bluetooth, battery life and long-term stability have not been comprehensively tested.</p>
+          </aside>
+          <div>
+            <table class="status-table">
+              <thead><tr><th>Area</th><th>State</th><th>Notes</th></tr></thead>
+              <tbody>
+                <tr><td>Boot / SpringBoard</td><td><span class="state good">Reached</span></td><td>iOS 13.7 reached the Home Screen on the tested N61.</td></tr>
+                <tr><td>Touchscreen</td><td><span class="state good">Working</span></td><td>Touch input was used on the tested device.</td></tr>
+                <tr><td>Wi-Fi</td><td><span class="state good">Working</span></td><td>Working on the tested phone.</td></tr>
+                <tr><td>Touch ID</td><td><span class="state off">Disabled</span></td><td>SEP transport errors when enabled.</td></tr>
+                <tr><td>Audio</td><td><span class="state partial">Partial</span></td><td>Speaker output works; recording and AirPods output do not.</td></tr>
+                <tr><td>Cydia / packages</td><td><span class="state partial">Rough</span></td><td>Old bootstrap; package-manager issues are documented.</td></tr>
+                <tr><td>Cellular / cameras / GPS</td><td><span class="state partial">Untested</span></td><td>Not comprehensively tested. Do not assume support.</td></tr>
+              </tbody>
+            </table>
+            <p class="table-foot">Verification scope: one Debian x86_64 host + one iPhone 6 / N61. The Linux-built system reached the Home Screen. See docs/N61.md for the full table.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="guide">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div><div class="kicker">03 / The walkthrough</div><h2>From clean checkout to first boot.</h2></div>
+          <p class="section-intro">A condensed guide based on the repository's Markdown docs. Open each step for commands and context. For a first installation, read the complete N61 and Linux notes as well.</p>
+        </div>
+        <div class="guide reveal">
+          <aside class="guide-aside">
+            <div class="kicker">Before you begin</div>
+            <p>You need a phone on the exact supported base build, a Linux machine with USB access, the firmware files, and enough disk space. The iOS 13 base tree alone is about 9 GB.</p>
+            <div class="guide-links">
+              <a href="https://github.com/amethyst-oak/n61-patcher-linux/blob/main/docs/N61.md" target="_blank" rel="noreferrer">Full N61 guide ↗</a>
+              <a href="https://github.com/amethyst-oak/n61-patcher-linux/blob/main/docs/LINUX.md" target="_blank" rel="noreferrer">Linux setup notes ↗</a>
+              <a href="https://github.com/amethyst-oak/n61-patcher-linux/blob/main/docs/KNOWN_ISSUES.md" target="_blank" rel="noreferrer">Known issues ↗</a>
+            </div>
+            <div class="guide-warning"><strong>Back up first.</strong> The installer creates APFS volumes and writes system files. A mistake or an Apple restore can erase data. There is no one-command uninstall that removes only the added volumes.</div>
+          </aside>
+
+          <div class="guide-steps">
+            <details class="step" open>
+              <summary><span class="step-no">01</span><span class="step-title">Check the device<small class="step-sub">N61AP, iPhone7,2, native iOS 12.5.8 (16H88)</small></span><span class="step-plus">+</span></summary>
+              <div class="step-body">
+                <p>This guide is for the <strong>non-Plus iPhone 6</strong>. Do not substitute an iPhone 6 Plus (N56), iPhone 6s Plus (N66), or a different iOS build. The profile checks the board and the native SystemA build.</p>
+                <p>Start with a backup and the stock volume layout. If you previously added APFS volumes with another dual-boot tool, the layout guard may refuse to continue. Do not edit volume numbers to force it.</p>
+              </div>
+            </details>
+
+            <details class="step">
+              <summary><span class="step-no">02</span><span class="step-title">Prepare the Linux host<small class="step-sub">Debian / Ubuntu package names</small></span><span class="step-plus">+</span></summary>
+              <div class="step-body">
+                <p>Install the host dependencies. <span class="inline-code">apfs-fuse</span> is not packaged in the standard repositories and must be installed separately; see the Linux notes for its build dependencies.</p>
+                <div class="codebox"><div class="codehead"><span>Shell · system packages</span><button class="copy" type="button">Copy</button></div><pre><code>sudo apt install git build-essential clang lld llvm xz-utils p7zip-full dmg2img \
+  libusb-1.0-0-dev libssl-dev xxd libblocksruntime-dev fuse3 ldid libusbmuxd-tools \
+  gcc-aarch64-linux-gnu libc6-dev-arm64-cross qemu-user
+
+sudo modprobe hfsplus fuse</code></pre></div>
+                <p>You also need an iPhoneOS SDK (the project documents Theos <span class="inline-code">iPhoneOS14.5.sdk</span> as accepted) and Python 3.</p>
+              </div>
+            </details>
+
+            <details class="step">
+              <summary><span class="step-no">03</span><span class="step-title">Clone and set up the project<small class="step-sub">Submodules, virtual environment and helper tools</small></span><span class="step-plus">+</span></summary>
+              <div class="step-body">
+                <div class="codebox"><div class="codehead"><span>Shell · project setup</span><button class="copy" type="button">Copy</button></div><pre><code>git clone --recursive https://github.com/amethyst-oak/n61-patcher-linux.git
+cd n61-patcher-linux
+mkdir -p ipsw build "$HOME/.cache/n61-patcher-tmp"
+
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt pillow pillow-heif
+
+export IPHONEOS_SDK=/path/to/iPhoneOS14.5.sdk
+.venv/bin/python tools/doctor.py
+.venv/bin/python tools/setup.py</code></pre></div>
+                <p><span class="inline-code">doctor.py</span> reports missing requirements with hints. <span class="inline-code">setup.py</span> initializes submodules and prepares helper tools and donor files. Continue only when setup finishes with <strong>Tools ready</strong>.</p>
+              </div>
+            </details>
+
+            <details class="step">
+              <summary><span class="step-no">04</span><span class="step-title">Fetch and verify the four IPSWs<small class="step-sub">Exact builds matter — don't swap in another release</small></span><span class="step-plus">+</span></summary>
+              <div class="step-body">
+                <p>The downloader retrieves the exact Apple firmware files and checks their pinned sizes and SHA-256 hashes. Firmware itself is not included in this repository.</p>
+                <div class="codebox"><div class="codehead"><span>Shell · firmware</span><button class="copy" type="button">Copy</button></div><pre><code>.venv/bin/python tools/fetch_ipsw.py --list
+.venv/bin/python tools/fetch_ipsw.py
+.venv/bin/python tools/fetch_ipsw.py --verify-only</code></pre></div>
+                <p>The four files are: N61 iPhone 6 iOS 12.5.8 (your phone), N66 iOS 13.7 (donor), N71 iOS 13.7 (UI resources), and J96 iPad mini 4 iOS 13.7 (root filesystem and kernel). Keep the exact filenames listed in <a class="guide-link" href="https://github.com/amethyst-oak/n61-patcher-linux/blob/main/docs/N61.md" target="_blank" rel="noreferrer">docs/N61.md</a>.</p>
+              </div>
+            </details>
+
+            <details class="step">
+              <summary><span class="step-no">05</span><span class="step-title">Generate the SSH ramdisk<small class="step-sub">DFU mode, not Recovery mode</small></span><span class="step-plus">+</span></summary>
+              <div class="step-body">
+                <p>Put the iPhone into DFU. The screen should be completely black; a cable/computer recovery screen is a different mode. On iPhone 6, hold Home and the side button together for 8–10 seconds, release the side button, and keep holding Home until the computer detects it.</p>
+                <div class="codebox"><div class="codehead"><span>Shell · create ramdisk</span><button class="copy" type="button">Copy</button></div><pre><code>lsusb | grep -i apple
+
+(cd tools/SSHRD_Script && ./sshrd.sh 12.5.8)
+ls tools/SSHRD_Script/sshramdisk</code></pre></div>
+                <p>The DFU device normally appears as <span class="inline-code">05ac:1227</span>. Check that <span class="inline-code">sshramdisk/</span> contains <span class="inline-code">iBSS.img4</span>, <span class="inline-code">iBEC.img4</span>, <span class="inline-code">ramdisk.img4</span> and <span class="inline-code">kernelcache.img4</span>. An empty folder means the later ramdisk stage will not work.</p>
+                <p><strong>Important:</strong> do not use the upstream generic <span class="inline-code">mount_filesystems</span> flow. Mounting the encrypted native Data volume can hang the APFS container.</p>
+              </div>
+            </details>
+
+            <details class="step">
+              <summary><span class="step-no">06</span><span class="step-title">Run the profile check and dry-run<small class="step-sub">Inspect the plan before any write stage</small></span><span class="step-plus">+</span></summary>
+              <div class="step-body">
+                <div class="codebox"><div class="codehead"><span>Shell · no install writes</span><button class="copy" type="button">Copy</button></div><pre><code>.venv/bin/python n56patcher.py list --target n61-ios13
+.venv/bin/python n56patcher.py all --target n61-ios13 \
+  --workdir build/n61-current --dry-run</code></pre></div>
+                <p>The dry-run prints the patches and planned flow. It does <strong>not</strong> talk to the phone, check the phone's APFS layout, or exercise the Linux-only install path. It is a plan review, not proof that the install will succeed.</p>
+              </div>
+            </details>
+
+            <details class="step">
+              <summary><span class="step-no">07</span><span class="step-title">Install, build and boot iOS 13.7<small class="step-sub">The destructive part — keep USB connected</small></span><span class="step-plus">+</span></summary>
+              <div class="step-body">
+                <p>With the phone in DFU and all four IPSWs verified, run the full flow. This writes APFS metadata and the new system. Do not unplug the phone during a filesystem write.</p>
+                <div class="codebox"><div class="codehead"><span>Shell · install</span><button class="copy" type="button">Copy</button></div><pre><code>sudo env TMPDIR="$HOME/.cache/n61-patcher-tmp" IPHONEOS_SDK="$IPHONEOS_SDK" \
+  .venv/bin/python n56patcher.py all --target n61-ios13 \
+  --workdir build/n61-current</code></pre></div>
+                <p>The process creates SystemB and DataB, writes the iOS 13 tree, applies overlays, builds boot images and sends them. When the last stage asks for DFU again, re-enter DFU and leave the command running.</p>
+                <p>After boot, complete setup on the phone over Wi-Fi. This is not an Activation Lock bypass and it does not skip activation.</p>
+              </div>
+            </details>
+
+            <details class="step">
+              <summary><span class="step-no">08</span><span class="step-title">Boot it again later<small class="step-sub">Keep your personalized boot bundle</small></span><span class="step-plus">+</span></summary>
+              <div class="step-body">
+                <p>The second system is tethered. Keep the entire <span class="inline-code">build/n61-current/</span> directory privately; it contains images paired with your phone's own boot ticket. For another iOS 13 boot, enter DFU and run:</p>
+                <div class="codebox"><div class="codehead"><span>Shell · tethered boot</span><button class="copy" type="button">Copy</button></div><pre><code>.venv/bin/python n56patcher.py boot --target n61-ios13 \
+  --workdir build/n61-current</code></pre></div>
+                <p>Never use another person's IM4M or boot bundle. Do not rerun <span class="inline-code">install</span>, <span class="inline-code">rootfs</span>, or <span class="inline-code">all</span> just to reboot — those stages clear SystemB.</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="checklist">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div><div class="kicker">04 / Bench checklist</div><h2>Before touching APFS.</h2></div>
+          <p class="section-intro">A small pre-flight list. Tick these off on your own machine; progress stays in this browser until you reset it.</p>
+        </div>
+        <div class="prep-grid reveal">
+          <p class="prep-copy">This is the boring part that saves weekends. The installer has guards, but a guard is not a substitute for a backup or checking the target twice.</p>
+          <div class="check-panel">
+            <div class="check-top"><b>Pre-install checks</b><span class="check-count" id="checkCount">0 / 6 complete</span></div>
+            <div class="progress"><span id="progressBar"></span></div>
+            <div class="checklist">
+              <label class="check-row"><input type="checkbox" data-check="backup"><span>A current backup exists, and I know how to restore the phone.</span></label>
+              <label class="check-row"><input type="checkbox" data-check="device"><span>The device is iPhone 6 / iPhone7,2 / N61AP — not a Plus model.</span></label>
+              <label class="check-row"><input type="checkbox" data-check="base"><span>Native SystemA is iOS 12.5.8, build 16H88.</span></label>
+              <label class="check-row"><input type="checkbox" data-check="layout"><span>The phone has the expected stock APFS volume layout.</span></label>
+              <label class="check-row"><input type="checkbox" data-check="ipsw"><span>All four IPSWs pass the repository's verification command.</span></label>
+              <label class="check-row"><input type="checkbox" data-check="host"><span><code>tools/doctor.py</code> reports all required host tools present.</span></label>
+            </div>
+            <button class="reset-checks" type="button" id="resetChecks">Reset checklist ↺</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="notes">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div><div class="kicker">05 / Field notes</div><h2>A few things worth remembering.</h2></div>
+          <p class="section-intro">Some gotchas from the docs that are easy to miss when you're focused on getting the phone to boot.</p>
+        </div>
+        <div class="field-notes reveal">
+          <article class="note"><small>01 · Device names</small><h3>N56 is not N61.</h3><p>N56AP is the iPhone 6 Plus. This project targets N61AP, the smaller iPhone 6. N66AP is an iPhone 6s Plus donor, not the iPhone 6 Plus.</p></article>
+          <article class="note"><small>02 · Keep the build folder</small><h3>Your boot images are personal.</h3><p>The generated images are tied to the phone's own ticket. Keep the build directory private and do not borrow someone else's IM4M or boot bundle.</p></article>
+          <article class="note"><small>03 · Recovery</small><h3>Restore means start over.</h3><p>An Apple restore removes this installation and returns the phone to stock iOS. There is no selective one-command uninstall for only the added volumes.</p></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-top">
+        <div>
+          <div class="footer-brand">n61-patcher <span style="color:#737d7f;font-weight:400">/ Linux port</span></div>
+          <p class="footer-copy">An independent community project. Not affiliated with Apple. The 3D handset is an original visual reconstruction based on Apple's published exterior dimensions, not an Apple-provided CAD file. The N61 adaptation and Linux port retain upstream credits and separate component licenses. Main project code is GPL-3.0; Apple firmware is not included.</p>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/amethyst-oak/n61-patcher-linux" target="_blank" rel="noreferrer">Repository ↗</a>
+          <a href="https://github.com/amethyst-oak/n61-patcher-linux/blob/main/README.md" target="_blank" rel="noreferrer">README ↗</a>
+          <a href="https://github.com/amethyst-oak/n61-patcher-linux/blob/main/LICENSE" target="_blank" rel="noreferrer">GPL-3.0 ↗</a>
+          <a href="https://github.com/amethyst-oak/n61-patcher-linux/issues" target="_blank" rel="noreferrer">Issues ↗</a>
+          <a href="https://support.apple.com/en-ie/111954" target="_blank" rel="noreferrer">iPhone 6 specifications ↗</a>
+        </div>
+      </div>
+      <div class="footer-bottom"><span>MADE FOR THE N61. RUN AT YOUR OWN RISK.</span><span>NO CLOUD · NO TRACKING · JUST A STATIC PAGE</span></div>
+    </div>
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite">Copied to clipboard</div>
+
+  <script>
+    (() => {
+      // Copy buttons read the command from their own block.
+      const toast = document.getElementById('toast');
+      let toastTimer;
+      const showToast = message => {
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 1700);
+      };
+      document.querySelectorAll('.copy').forEach(button => button.addEventListener('click', async () => {
+        const command = button.closest('.codebox').querySelector('code').innerText;
+        try {
+          await navigator.clipboard.writeText(command);
+          button.textContent = 'Copied';
+          showToast('Command copied');
+        } catch (err) {
+          const range = document.createRange();
+          range.selectNodeContents(button.closest('.codebox').querySelector('code'));
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          showToast('Select the highlighted command and copy it');
+        }
+        setTimeout(() => button.textContent = 'Copy', 1500);
+      }));
+
+      // Local-only checklist. No data leaves the browser.
+      const checks = [...document.querySelectorAll('[data-check]')];
+      const storageKey = 'n61-patcher-preflight-v1';
+      let saved = {};
+      try { saved = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch (_) { saved = {}; }
+      checks.forEach(input => {
+        input.checked = Boolean(saved[input.dataset.check]);
+        input.addEventListener('change', updateChecks);
+      });
+      function updateChecks() {
+        const state = {};
+        checks.forEach(input => state[input.dataset.check] = input.checked);
+        try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch (_) {}
+        const count = checks.filter(input => input.checked).length;
+        document.getElementById('checkCount').textContent = `${count} / ${checks.length} complete`;
+        document.getElementById('progressBar').style.width = `${count / checks.length * 100}%`;
+      }
+      document.getElementById('resetChecks').addEventListener('click', () => {
+        checks.forEach(input => input.checked = false);
+        updateChecks();
+        showToast('Checklist reset');
+      });
+      updateChecks();
+
+      // Reveal sections as they enter the viewport.
+      const revealItems = document.querySelectorAll('.reveal');
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        }), { threshold: .08 });
+        revealItems.forEach(item => observer.observe(item));
+      } else revealItems.forEach(item => item.classList.add('visible'));
+    })();
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+    const mount = document.getElementById('modelViewer');
+    const status = document.getElementById('modelStatus');
+    const spinButton = document.getElementById('spinButton');
+    const viewButtons = [...document.querySelectorAll('[data-view]')];
+
+    try {
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(32, 1, 0.01, 5);
+      camera.position.set(0.052, 0.018, 0.275);
+
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.18;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.setClearColor(0x000000, 0);
+      mount.appendChild(renderer.domElement);
+
+      scene.add(new THREE.HemisphereLight(0xdfe7f0, 0x292d31, 2.0));
+      const key = new THREE.DirectionalLight(0xffffff, 3.1);
+      key.position.set(-0.16, 0.22, 0.20);
+      key.castShadow = true;
+      key.shadow.mapSize.set(1024, 1024);
+      key.shadow.camera.left = -0.16;
+      key.shadow.camera.right = 0.16;
+      key.shadow.camera.top = 0.18;
+      key.shadow.camera.bottom = -0.18;
+      scene.add(key);
+      const rim = new THREE.DirectionalLight(0x9eacbd, 1.25);
+      rim.position.set(0.18, 0.04, -0.16);
+      scene.add(rim);
+
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const environment = new RoomEnvironment(renderer);
+      scene.environment = pmrem.fromScene(environment, 0.04).texture;
+      environment.dispose();
+      pmrem.dispose();
+
+      const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.32, 0.32),
+        new THREE.ShadowMaterial({ opacity: 0.22 })
+      );
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -0.0715;
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.target.set(0, 0, 0);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.075;
+      controls.enablePan = false;
+      controls.enableZoom = true;
+      controls.minDistance = 0.17;
+      controls.maxDistance = 0.42;
+      controls.minPolarAngle = 0.18;
+      controls.maxPolarAngle = Math.PI - 0.18;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.72;
+      controls.update();
+      controls.addEventListener('start', () => {
+        if (controls.autoRotate) {
+          controls.autoRotate = false;
+          spinButton.textContent = 'Auto rotate ↻';
+          spinButton.classList.remove('active');
+        }
+        viewButtons.forEach(item => item.classList.remove('active'));
+      });
+
+      const loader = new GLTFLoader();
+      loader.load('./models/iphone-6.glb', gltf => {
+        const model = gltf.scene;
+        model.traverse(object => {
+          if (object.isMesh) {
+            object.castShadow = true;
+            object.receiveShadow = true;
+            if (object.material) {
+              object.material.needsUpdate = true;
+              if ('envMapIntensity' in object.material) object.material.envMapIntensity = 1.25;
+            }
+          }
+        });
+        scene.add(model);
+        status.textContent = 'GLB loaded';
+        status.style.display = 'none';
+      }, xhr => {
+        if (xhr.total) status.textContent = `Loading model · ${Math.round(xhr.loaded / xhr.total * 100)}%`;
+      }, error => {
+        console.error('Could not load the iPhone 6 GLB:', error);
+        status.textContent = 'Could not load models/iphone-6.glb';
+        status.classList.add('error');
+      });
+
+      function resize() {
+        const width = Math.max(1, mount.clientWidth);
+        const height = Math.max(1, mount.clientHeight);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height, false);
+      }
+      const resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(mount);
+      resize();
+
+      viewButtons.forEach(button => button.addEventListener('click', () => {
+        controls.autoRotate = false;
+        spinButton.textContent = 'Auto rotate ↻';
+        spinButton.classList.remove('active');
+        const back = button.dataset.view === 'back';
+        camera.position.set(back ? -0.052 : 0.052, 0.018, back ? -0.275 : 0.275);
+        controls.target.set(0, 0, 0);
+        controls.update();
+        viewButtons.forEach(item => item.classList.toggle('active', item === button));
+      }));
+
+      spinButton.addEventListener('click', () => {
+        controls.autoRotate = !controls.autoRotate;
+        spinButton.textContent = controls.autoRotate ? 'Pause rotation ‖' : 'Auto rotate ↻';
+        spinButton.classList.toggle('active', controls.autoRotate);
+      });
+
+      const animate = () => {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      };
+      animate();
+    } catch (error) {
+      console.error('Three.js viewer initialisation failed:', error);
+      status.textContent = 'WebGL is unavailable in this browser';
+      status.classList.add('error');
+    }
+  </script>
+</body>
+</html>
